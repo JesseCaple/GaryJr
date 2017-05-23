@@ -1,4 +1,4 @@
-﻿namespace GaryJr
+﻿namespace GaryJr.Services
 {
     using System;
     using System.IO;
@@ -8,11 +8,11 @@
     /// <summary>
     /// Read-only config file that supports model additions.
     /// </summary>
-    public class Config
+    public class ConfigService
     {
         private readonly string path;
 
-        public Config()
+        public ConfigService()
         {
             if (!Directory.Exists(AppContext.BaseDirectory))
             {

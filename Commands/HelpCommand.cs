@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using GaryJr.Middleware;
 
 namespace GaryJr.Commands
 {
@@ -10,14 +11,14 @@ namespace GaryJr.Commands
     {
         public string Description => "displays list of bot commands";
 
-        public Task<bool> HasPermission(SocketUser user)
+        public bool HasPermission(SocketUser user)
         {
-            return Task.FromResult(true);
+            return true;
         }
 
-        public async Task Run(SocketMessage message)
+        public async Task RunAsync(SocketMessage message)
         {
-            await message.Channel.SendMessageAsync(CommandSystem.HelpText);
+            await message.Channel.SendMessageAsync(CommandMiddleware.HelpText);
         }
     }
 }

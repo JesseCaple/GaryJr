@@ -8,8 +8,8 @@ namespace GaryJr
 {
     interface ICommand
     {
-        Task<bool> HasPermission(SocketUser user);
-        Task Run(SocketMessage message);
+        bool HasPermission(SocketUser user);
+        Task RunAsync(SocketMessage message);
         string Description { get; }
     }
 }

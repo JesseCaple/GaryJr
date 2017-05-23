@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using System.Net;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using GaryJr.Services;
 
 namespace GaryJr.Commands
 {
@@ -15,17 +16,17 @@ namespace GaryJr.Commands
 
         string key;
 
-        public DefineCommand(Config config)
+        public DefineCommand(ConfigService config)
         {
             key = config.MashapeKey;
         }
 
-        public Task<bool> HasPermission(SocketUser user)
+        public bool HasPermission(SocketUser user)
         {
-            return Task.FromResult(true);
+            return true;
         }
 
-        public async Task Run(SocketMessage message)
+        public async Task RunAsync(SocketMessage message)
         {
             var contentIndex = message.Content.IndexOf(' ');
             if (contentIndex == -1)

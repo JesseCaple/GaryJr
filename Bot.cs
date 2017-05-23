@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using GaryJr.Middleware;
+using GaryJr.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,16 +11,16 @@ namespace GaryJr
 {
     class Bot
     {
-        Config config;
-        CommandSystem commandSystem;
+        ConfigService config;
         DiscordSocketClient client;
+        IEnumerable<IMiddleware> middleware;
 
         public Bot(
-            Config config,
-            CommandSystem commandSystem)
+            ConfigService config,
+            IEnumerable<IMiddleware> middleware)
         {
             this.config = config;
-            this.commandSystem = commandSystem;
+            this.middleware = middleware;
         }
 
         public async Task Run()
@@ -39,9 +41,12 @@ namespace GaryJr
 
         private async Task MessageReceived(SocketMessage message)
         {
-            if (message.Content.Length > 1 && message.Content[0] == '.')
+            foreach (var m in middleware)
             {
-                await commandSystem.HandleCommand(message);
+                if (await m.HandleMessage(message))
+                {
+                    break;
+                }
             }
         }
     }

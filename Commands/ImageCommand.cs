@@ -5,23 +5,23 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using System.Net;
 using System.IO;
-using System.Xml.Linq;
-using System.Linq;
-using System.Net.Http;
+using Newtonsoft.Json.Linq;
 using GaryJr.Services;
 
 namespace GaryJr.Commands
 {
-    class CatCommand : ICommand
+    class ImageCommand : ICommand
     {
-        string key;
+        public string Description => "posts a picture related to whatever else you type";
 
-        public CatCommand(ConfigService config)
+        private Random random = new Random();
+        private string key, cx;
+
+        public ImageCommand(ConfigService config)
         {
-            key = config.CatKey;
+            key = config.GoogleKey;
+            cx = config.GoogleSearchCx;
         }
-
-        public string Description => "posts a random picture of a cat";
 
         public bool HasPermission(SocketUser user)
         {
@@ -30,30 +30,42 @@ namespace GaryJr.Commands
 
         public async Task RunAsync(SocketMessage message)
         {
+            var contentIndex = message.Content.IndexOf(' ');
+            if (contentIndex == -1)
+            {
+                await message.Channel.SendMessageAsync($"{message.Author.Mention} What image did you want to see?");
+                return;
+            }
+
+            var query = message.Content.Substring(contentIndex + 1);
             await message.Channel.TriggerTypingAsync();
             try
             {
-                // download the xml result from cat api site
-                string resultUri = null;
-                string apiUri = $"https://thecatapi.com/api/images/get?api_key={key}&format=xml";
-                var request = WebRequest.CreateHttp(apiUri);
+                string resultLink = null;
+                int offset = this.random.Next(0, 45);
+                var uri = $"https://www.googleapis.com/customsearch/v1?q={query}&num=1&start={offset}&imgSize=medium&searchType=image&key={key}&cx={cx}";
+                var request = WebRequest.CreateHttp(uri);
                 using (var response = await request.GetResponseAsync())
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
                     var text = await reader.ReadToEndAsync();
-                    var xml = XDocument.Parse(text);
-                    var url = xml.Descendants("url").SingleOrDefault();
-                    if (url != null)
+                    var json = JObject.Parse(text);
+                    if (json != null)
                     {
-                        resultUri = url.Value;
+                        var token = json.SelectToken("items[0].link");
+                        if (token != null)
+                        {
+                            resultLink = token.Value<string>();
+                        }
                     }
                 }
 
+
                 // if result contained a url to an image, download it and send to discord
-                if (resultUri != null)
+                if (resultLink != null)
                 {
                     var temp = Path.GetTempFileName();
-                    request = WebRequest.CreateHttp(resultUri);
+                    request = WebRequest.CreateHttp(resultLink);
                     using (var response = await request.GetResponseAsync())
                     using (var stream = response.GetResponseStream())
                     {
@@ -73,7 +85,7 @@ namespace GaryJr.Commands
             }
             catch (Exception)
             {
-                await message.Channel.SendMessageAsync("Cat overflow exception. Too many cats.");
+                await message.Channel.SendMessageAsync("Sorry bro, fresh out of quality images for today.");
             }
         }
     }

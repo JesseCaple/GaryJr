@@ -6,6 +6,8 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 using GaryJr.Commands;
+using GaryJr.Services;
+using GaryJr.Middleware;
 
 namespace GaryJr
 {
@@ -23,8 +25,9 @@ namespace GaryJr
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<Config>();
-            CommandSystem.ConfigureCommands(services);
+            services.AddSingleton<ConfigService>();
+            services.UseCommands();
+
             services.AddSingleton<Bot>();
         }
 
